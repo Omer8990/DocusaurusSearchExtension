@@ -1,0 +1,9 @@
+services:
+  docusaurus:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    container_name: docusaurus-site
+    ports:
+      - "3000:80"
+    restart: unless-stopped

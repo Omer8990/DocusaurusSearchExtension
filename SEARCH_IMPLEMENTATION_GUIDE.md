@@ -121,3 +121,22 @@ For very large projects, your search index might exceed 5MB.
 3. **The Toggle** allows the user to programmatically remove that filter at runtime.
 
 This approach gives your users the power of a "Global Portal" while maintaining the focus of "Project Documentation".
+
+---
+
+## 6. Scalability & Limitations
+This solution utilizes **Client-Side Search**, meaning the entire search index must be downloaded and parsed by the user's browser.
+
+### 6.1 Performance Thresholds
+- **Small Scale (< 1,000 pages):** Excellent performance. Instant results.
+- **Medium Scale (1,000 - 5,000 pages):** Good performance. Index size ~2-5MB.
+- **Large Scale (> 5,000 pages):** Performance degrades.
+    - **Initial Load:** Users may see a delay before search is ready.
+    - **Memory:** "Search All" may freeze the UI on low-end devices or mobile.
+    - **Build Time:** The `docusaurus build` process will take significantly longer to generate the index.
+
+### 6.2 "Hundreds of Projects" Risk
+If you scale to hundreds of projects, the combined index size will likely exceed browser limits for a smooth experience. The "Search All" feature will force the browser to load the entire dataset, potentially causing **tab crashes** or **browser unresponsiveness**.
+
+### 6.3 Solution for High Scale
+For massive documentation sets, migrating to a **Server-Side Search** solution (like Algolia DocSearch, Typesense, or Elasticsearch) is required. These services handle the indexing and querying on a remote server, sending only the results to the client.

@@ -73,6 +73,15 @@ const config: Config = {
         sidebarPath: './sidebarsProjectC.ts',
       },
     ],
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        docsRouteBasePath: ['docs', 'community', 'project_a', 'project_b', 'project_c'],
+        searchContextByPaths: ['docs', 'community', 'project_a', 'project_b', 'project_c'],
+        hideSearchBarWithNoSearchContext: false,
+      },
+    ],
   ],
 
   presets: [

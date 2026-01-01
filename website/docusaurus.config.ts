@@ -4,6 +4,33 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
+const docsPlugins = [
+  {
+    id: 'community',
+    path: 'docs/community',
+    routeBasePath: 'community',
+    sidebarPath: './sidebarsCommunity.ts',
+  },
+  {
+    id: 'project_a',
+    path: 'docs/project_a',
+    routeBasePath: 'project_a',
+    sidebarPath: './sidebarsProjectA.ts',
+  },
+  {
+    id: 'project_b',
+    path: 'docs/project_b',
+    routeBasePath: 'project_b',
+    sidebarPath: './sidebarsProjectB.ts',
+  },
+  {
+    id: 'project_c',
+    path: 'docs/project_c',
+    routeBasePath: 'project_c',
+    sidebarPath: './sidebarsProjectC.ts',
+  },
+];
+
 const config: Config = {
   title: 'My Site',
   tagline: 'Dinosaurs are cool',
@@ -37,49 +64,18 @@ const config: Config = {
   },
 
   plugins: [
-    [
+    ...docsPlugins.map((plugin) => [
       '@docusaurus/plugin-content-docs',
-      {
-        id: 'community',
-        path: 'docs/community',
-        routeBasePath: 'community',
-        sidebarPath: './sidebarsCommunity.ts',
-      },
-    ],
-    [
-      '@docusaurus/plugin-content-docs',
-      {
-        id: 'project_a',
-        path: 'docs/project_a',
-        routeBasePath: 'project_a',
-        sidebarPath: './sidebarsProjectA.ts',
-      },
-    ],
-    [
-      '@docusaurus/plugin-content-docs',
-      {
-        id: 'project_b',
-        path: 'docs/project_b',
-        routeBasePath: 'project_b',
-        sidebarPath: './sidebarsProjectB.ts',
-      },
-    ],
-    [
-      '@docusaurus/plugin-content-docs',
-      {
-        id: 'project_c',
-        path: 'docs/project_c',
-        routeBasePath: 'project_c',
-        sidebarPath: './sidebarsProjectC.ts',
-      },
-    ],
+      plugin,
+    ]),
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
       {
         hashed: true,
-        docsRouteBasePath: ['docs', 'community', 'project_a', 'project_b', 'project_c'],
-        searchContextByPaths: ['docs', 'community', 'project_a', 'project_b', 'project_c'],
+        docsRouteBasePath: ['docs', ...docsPlugins.map((plugin) => plugin.routeBasePath)],
+        searchContextByPaths: ['docs', ...docsPlugins.map((plugin) => plugin.routeBasePath)],
         hideSearchBarWithNoSearchContext: false,
+        useAllContextsWithNoSearchContext: true,
       },
     ],
   ],

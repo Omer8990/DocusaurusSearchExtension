@@ -1,41 +1,66 @@
-# Website
+# Docusaurus Multi-Tenant Search Extension
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This project implements a high-performance, dual-scope search system for Docusaurus. It allows users to toggle between **Local Search** (scoped to a specific project) and **Macro Search** (global across all documentation silos).
 
-## Installation
+---
 
-```bash
-yarn
+## 🛠 Technical Architecture: How it Works
+
+### 1. Offline Indexing (The Search Engine)
+We use `@easyops-cn/docusaurus-search-local` instead of a SaaS solution like Algolia.
+- **Build-Time Crawling:** When `npm run build` is executed, the plugin scans every Markdown file and generates a `search-index.json`.
+- **Client-Side Execution:** The browser downloads this index and uses **Lunr.js** to perform searches locally.
+- **Why it's Production-Ready:** No external API calls are made, search is nearly instantaneous, and there are no hosting costs for search.
+
+### 2. The "Swizzle" Strategy
+Docusaurus allows "ejecting" (swizzling) components from plugins into the local `src/theme` folder.
+- **The Rule of Precedence:** Docusaurus prioritizes files in `src/theme` over those in `node_modules`.
+- **Customization:** By ejecting the `SearchBar`, we gained direct access to the React code responsible for executing queries and rendering results.
+
+### 3. Portability via Absolute Imports
+Standard ejected components use relative paths (e.g., `../../utils`). We converted these to **Absolute Package Paths**:
+```javascript
+import { searchByWorker } from "@easyops-cn/docusaurus-search-local/dist/client/client/theme/searchByWorker";
 ```
+- **Benefit:** This makes the `src/theme/SearchBar` folder entirely portable. You can copy this folder into any other Docusaurus project, and it will work as long as the plugin is installed.
 
-## Local Development
+### 4. Search Context Logic (The "Brain")
+The core of the "Macro Search" feature lies in how we handle the `searchContext` variable.
 
-```bash
-yarn start
-```
+#### Detection (Auto-Scope)
+The plugin watches the URL (`location.pathname`). If it matches a path defined in `docusaurus.config.ts` (e.g., `/project_a`), it automatically sets the context to `project_a`.
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+#### The Override (Macro Toggle)
+We introduced a React state `isGlobal`. We modified the `useEffect` hook to implement a priority rule:
+1. **If `isGlobal` is TRUE:** We force `setSearchContext("")`. An empty string tells the engine to ignore all filters and search the entire site.
+2. **If `isGlobal` is FALSE:** The engine follows the standard auto-detection logic based on the user's current page.
 
-## Build
+---
 
-```bash
-yarn build
-```
+## 🚀 How to Port this to Production
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+To add this feature to an existing project:
 
-## Deployment
+1. **Install Plugin:**
+   ```bash
+   npm install @easyops-cn/docusaurus-search-local
+   ```
 
-Using SSH:
+2. **Configure `docusaurus.config.ts`:**
+   Add the plugin and define your `docsRouteBasePath` and `searchContextByPaths`.
 
-```bash
-USE_SSH=true yarn deploy
-```
+3. **Copy Theme Files:**
+   Copy the `src/theme/SearchBar` directory from this project to the `src/theme/` directory of your production project.
 
-Not using SSH:
+4. **Verify Build:**
+   Search **only** works in production builds. Run:
+   ```bash
+   npm run build && npm run serve
+   ```
 
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
+---
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+## ⚠️ Maintenance Notes
+- **Development Mode:** The search bar will show a warning in `npm start`. This is normal.
+- **Memory:** If building a massive project (thousands of pages), you may need to increase Node memory: `NODE_OPTIONS=--max-old-space-size=4096 npm run build`.
+- **CSS:** The toggle is positioned absolutely (`top: -25px`) to avoid breaking existing navbar layouts.

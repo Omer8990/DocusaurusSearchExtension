@@ -201,8 +201,20 @@ export default function SearchBar({ handleSearchBarToggle, }) {
         }, [
             {
                 source: async (input, callback) => {
-                    const result = await searchByWorker(versionUrl, searchContext, input, searchResultLimits);
-                    callback(result);
+                    if (searchContext === "") {
+                        const paths = Array.isArray(searchContextByPaths)
+                            ? searchContextByPaths.map(p => typeof p === "string" ? p : p.path)
+                            : [];
+                        const contexts = ["", ...paths];
+                        const results = await Promise.all(contexts.map(ctx =>
+                            searchByWorker(versionUrl, ctx, input, searchResultLimits)
+                        ));
+                        const merged = results.flat().sort((a, b) => b.score - a.score);
+                        callback(merged.slice(0, searchResultLimits));
+                    } else {
+                        const result = await searchByWorker(versionUrl, searchContext, input, searchResultLimits);
+                        callback(result);
+                    }
                 },
                 templates: {
                     suggestion: SuggestionTemplate,

@@ -274,15 +274,116 @@ html[dir="rtl"] :global(.navbar__search-input) {
   padding: 0 2.25em 0 0.5em;
 }
 
-/* For autocomplete.js only. */
-.input {
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Ensure it's above everything */
 }
-.hint {
+
+.modalContent {
+  background: var(--ifm-background-color);
+  padding: 20px;
+  border-radius: 8px;
+  width: 320px;
+  max-width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
 }
-.suggestions {
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
-.dataset {
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.2rem;
 }
-.empty {
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--ifm-color-emphasis-700);
+  padding: 0 5px;
 }
-/**/
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.checkboxLabel input {
+  margin-right: 10px;
+}
+
+.labelText {
+  font-size: 0.95rem;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+  margin: 5px 0;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.applyButton {
+  background: var(--ifm-color-primary);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.applyButton:hover {
+  background: var(--ifm-color-primary-darker);
+}
+
+.filterButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    color: var(--ifm-color-primary);
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: -30px;
+    right: 0;
+    font-weight: 500;
+}
+
+.filterButton svg {
+  margin-right: 4px;
+}

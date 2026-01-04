@@ -9,6 +9,7 @@ import { useActivePlugin } from "@docusaurus/plugin-content-docs/client";
 import { fetchIndexesByWorker, searchByWorker } from "@easyops-cn/docusaurus-search-local/dist/client/client/theme/searchByWorker";
 import { SuggestionTemplate } from "./SuggestionTemplate";
 import { EmptyTemplate } from "./EmptyTemplate";
+import { FilterModal } from "./FilterModal";
 import { Mark, searchBarShortcut, searchBarShortcutHint, searchBarShortcutKeymap, searchBarPosition, docsPluginIdForPreferredVersion, indexDocs, searchContextByPaths, hideSearchBarWithNoSearchContext, useAllContextsWithNoSearchContext, } from "@easyops-cn/docusaurus-search-local/dist/client/client/utils/proxiedGenerated";
 import LoadingRing from "@easyops-cn/docusaurus-search-local/dist/client/client/theme/LoadingRing/LoadingRing";
 import { normalizeContextByPath } from "@easyops-cn/docusaurus-search-local/dist/client/client/utils/normalizeContextByPath";
@@ -72,13 +73,27 @@ export default function SearchBar({ handleSearchBarToggle, }) {
     const search = useRef(null);
     const prevSearchContext = useRef("");
     const [searchContext, setSearchContext] = useState("");
-    const [isGlobal, setIsGlobal] = useState(false);
+    
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedContexts, setSelectedContexts] = useState(null); // null = auto-detect mode
+
     const prevVersionUrl = useRef(baseUrl);
     useEffect(() => {
-        if (isGlobal) {
-            setSearchContext("");
+        // Custom Filtering Logic
+        if (selectedContexts !== null) {
+            if (selectedContexts.length === 0) {
+                // "Search All" selected -> Global Search
+                setSearchContext("");
+            } else if (selectedContexts.length === 1) {
+                // Single Project -> Optimized Scoped Search
+                setSearchContext(selectedContexts[0]);
+            } else {
+                // Multiple Projects -> Global Search (filtered later)
+                setSearchContext("");
+            }
             return;
         }
+
         if (!Array.isArray(searchContextByPaths)) {
             if (prevVersionUrl.current !== versionUrl) {
                 // Reset index state map once version url is changed.
@@ -108,7 +123,7 @@ export default function SearchBar({ handleSearchBarToggle, }) {
             prevSearchContext.current = nextSearchContext;
         }
         setSearchContext(nextSearchContext);
-    }, [location.pathname, versionUrl, isGlobal]);
+    }, [location.pathname, versionUrl, selectedContexts]);
     const hidden = !!hideSearchBarWithNoSearchContext &&
         Array.isArray(searchContextByPaths) &&
         searchContext === "";
@@ -202,7 +217,26 @@ export default function SearchBar({ handleSearchBarToggle, }) {
             {
                 source: async (input, callback) => {
                     const result = await searchByWorker(versionUrl, searchContext, input, searchResultLimits);
-                    callback(result);
+                    
+                    // Client-side filtering for multiple contexts
+                    if (selectedContexts && selectedContexts.length > 1) {
+                        const filtered = result.filter(item => {
+                            // Strip baseUrl from item URL to match context paths
+                            // item.document.u usually starts with baseUrl
+                            let path = item.document.u;
+                            if (path.startsWith(baseUrl)) {
+                                path = path.substring(baseUrl.length);
+                            }
+                            
+                            return selectedContexts.some(ctx => {
+                                // Match if path starts with context (e.g. "project_a" matches "project_a/intro")
+                                return path === ctx || path.startsWith(`${ctx}/`);
+                            });
+                        });
+                        callback(filtered);
+                    } else {
+                        callback(result);
+                    }
                 },
                 templates: {
                     suggestion: SuggestionTemplate,
@@ -354,25 +388,33 @@ export default function SearchBar({ handleSearchBarToggle, }) {
         })} hidden={hidden} 
     // Manually make the search bar be LTR even if in RTL
     dir="ltr">
-      <div style={{
-          position: 'absolute',
-          top: '-25px',
-          right: '0',
-          fontSize: '0.8rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          zIndex: 100
-      }}>
-          <label style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}>
-              <input 
-                  type="checkbox" 
-                  checked={isGlobal} 
-                  onChange={(e) => setIsGlobal(e.target.checked)} 
-              />
-              Search All
-          </label>
-      </div>
+      <FilterModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          selectedContexts={selectedContexts || []}
+          onSelectionChange={(newSelection) => setSelectedContexts(newSelection)}
+          availableContexts={Array.isArray(searchContextByPaths) 
+              ? searchContextByPaths.map(p => typeof p === 'string' ? p : p.path)
+              : []
+          }
+      />
+      
+      <button 
+          className={styles.filterButton}
+          onClick={() => setIsModalOpen(true)}
+          title="Filter Search Scope"
+      >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          {selectedContexts === null 
+              ? "Auto" 
+              : selectedContexts.length === 0 
+                  ? "All" 
+                  : `${selectedContexts.length} Selected`
+          }
+      </button>
+
       <input placeholder={translate({
             id: "theme.SearchBar.label",
             message: "Search",

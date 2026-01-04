@@ -1,39 +1,29 @@
-# Run Instructions
+# Run Instructions (Typesense Scalable Search)
 
-This document outlines the steps to build and run the Docusaurus application using Docker Compose.
-
-## Prerequisites
-
-- **Docker** and **Docker Compose** must be installed on your system.
+This project uses **Typesense** for high-performance, scalable search across all projects.
 
 ## Steps to Run
 
-1.  **Build and Start the Container**
-    Run the following command in the root directory of the project (where `docker-compose.yml` is located):
-
+1.  **Start the Services**
+    Build and start the Docusaurus site and the Typesense search engine:
     ```bash
     docker-compose up --build -d
     ```
 
-    *   `--build`: Forces a rebuild of the Docker image to ensure any changes in the `website` directory are included.
-    *   `-d`: Runs the container in detached mode (in the background).
+2.  **Index the Content (Crucial)**
+    Typesense needs to "crawl" your site to build the search index. Run this whenever you add new docs:
+    ```bash
+    docker-compose run typesense-scraper
+    ```
 
-2.  **Access the Application**
-    Once the container is running, open your browser and navigate to:
+## Access
+- **Website:** [http://localhost:3000](http://localhost:3000)
+- **Search Engine API:** [http://localhost:8108](http://localhost:8108)
 
-    [http://localhost:3000](http://localhost:3000)
-
-## Verification
-
-To check if the container is running correctly, you can use:
-
-```bash
-docker ps
-```
-
-You should see a container named `docusaurus-site` listed.
+## Architecture for Scale
+- **Docusaurus:** Serves the static content via Nginx.
+- **Typesense:** A specialized C++ search engine container that handles the heavy lifting.
+- **Scraper:** A tool that reads your HTML and populates the search engine.
 
 ## Notes
-
-- The application is served using Nginx inside the container (defined in `website/Dockerfile`).
-- The `main.py` file in the root directory appears to be unused boilerplate and is not part of the build process.
+- If the search bar returns "No results", ensure you have run the `typesense-scraper` command above while the site is running.

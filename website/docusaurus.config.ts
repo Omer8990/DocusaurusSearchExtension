@@ -73,16 +73,9 @@ const config: Config = {
         sidebarPath: './sidebarsProjectC.ts',
       },
     ],
-    [
-      require.resolve('@easyops-cn/docusaurus-search-local'),
-      {
-        hashed: true,
-        docsRouteBasePath: ['docs', 'community', 'project_a', 'project_b', 'project_c'],
-        searchContextByPaths: ['docs', 'community', 'project_a', 'project_b', 'project_c'],
-        hideSearchBarWithNoSearchContext: false,
-      },
-    ],
   ],
+
+  themes: ['docusaurus-theme-search-typesense'],
 
   presets: [
     [
@@ -119,6 +112,20 @@ const config: Config = {
   ],
 
   themeConfig: {
+    typesense: {
+      typesenseCollectionName: 'docusaurus-2',
+      typesenseServerConfig: {
+        nodes: [
+          {
+            host: 'localhost',
+            port: 8108,
+            protocol: 'http',
+          },
+        ],
+        apiKey: 'xyz',
+      },
+      typesenseSearchParameters: {},
+    },
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {

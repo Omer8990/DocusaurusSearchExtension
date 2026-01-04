@@ -7,3 +7,45 @@ services:
     ports:
       - "3000:80"
     restart: unless-stopped
+    environment:
+      - TYPESENSE_API_KEY=xyz
+    networks:
+      - typesense-net
+
+  typesense:
+    image: typesense/typesense:27.1
+    container_name: typesense
+    environment:
+      - TYPESENSE_API_KEY=xyz
+      - TYPESENSE_DATA_DIR=/data
+      - TYPESENSE_ENABLE_CORS=true
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense-data:/data
+    networks:
+      - typesense-net
+    restart: unless-stopped
+
+  typesense-scraper:
+    image: typesense/docsearch-scraper:latest
+    container_name: typesense-scraper
+    environment:
+      - TYPESENSE_API_KEY=xyz
+      - TYPESENSE_HOST=typesense
+      - TYPESENSE_PORT=8108
+      - TYPESENSE_PROTOCOL=http
+      - CONFIG={"index_name":"docusaurus-2","start_urls":["http://docusaurus/"],"sitemap_urls":["http://docusaurus/sitemap.xml"],"selectors":{"lvl0":{"selector":".menu__link--active","global":true,"default_value":"Documentation"},"lvl1":"header h1","lvl2":"article h2","lvl3":"article h3","lvl4":"article h4","lvl5":"article h5, article h6","text":"article p, article li, article td"},"strip_chars":" .,;:#","custom_settings":{"attributesForFaceting":["type","lang","language","version","docusaurus_tag"]}}
+    networks:
+      - typesense-net
+    # We don't want this to restart constantly, it runs once then exits.
+    # User can restart it manually to re-index.
+    profiles:
+      - tools 
+
+volumes:
+  typesense-data:
+
+networks:
+  typesense-net:
+    driver: bridge

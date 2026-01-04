@@ -2,7 +2,7 @@
 FROM node:lts-alpine as dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Stage 2: Build the Docusaurus site
 FROM node:lts-alpine as build
@@ -14,5 +14,6 @@ RUN npm run build
 # Stage 3: Serve with Nginx
 FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

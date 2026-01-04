@@ -124,7 +124,12 @@ const config: Config = {
         ],
         apiKey: 'xyz',
       },
-      typesenseSearchParameters: {},
+      typesenseSearchParameters: {
+        query_by: 'hierarchy.lvl1,hierarchy.lvl2,hierarchy.lvl3,hierarchy.lvl4,hierarchy.lvl5,hierarchy.lvl6,content',
+        query_by_weights: '4,2,2,1,1,1,1',
+        min_len_1typo: 4,
+        min_len_2typo: 8,
+      },
     },
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
